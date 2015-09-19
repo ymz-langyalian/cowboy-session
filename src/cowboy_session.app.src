@@ -6,7 +6,8 @@
 		kernel,
 		stdlib,
 		gproc,
-		uuid
+		uuid,
+		pooler
 	]},
 	{mod, {cowboy_session, []}},
 	{env, []}
