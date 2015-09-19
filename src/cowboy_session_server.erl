@@ -8,6 +8,7 @@
     stop/1,
     get/3,
     set/3,
+    delete/2,
     sid/1
 ]).
 
@@ -45,6 +46,9 @@ set(Pid, Key, Value) ->
 
 get(Pid, Key, Default) ->
     gen_server:call(Pid, {get, Key, Default}).
+
+delete(Pid, Key) ->
+    gen_server:cast(Pid, {delete, Key}).
 
 sid(Pid) ->
     gen_server:call(Pid, sid).
@@ -87,6 +91,10 @@ handle_call(_, _, State) -> {reply, ignored, State}.
 
 handle_cast({set, Key, Value}, #state{sid = SID, storage = Storage} = State) ->
     ok = Storage:set(SID, Key, Value),
+    {noreply, State};
+
+handle_cast({delete, Key}, #state{sid = SID, storage = Storage} = State) ->
+    ok = Storage:delete(SID, Key),
     {noreply, State};
 
 handle_cast(touch, #state{expire = Expire} = State) ->
