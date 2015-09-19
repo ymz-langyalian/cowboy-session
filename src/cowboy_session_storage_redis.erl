@@ -71,7 +71,7 @@ init([]) ->
     {ok, State}.
 
 handle_call({get, SID, Key, Default}, _From, State) ->
-    Reply = case lib_pooler:use_member(fun(EredisPid) ->
+    Reply = case cowboy_pooler:use_member(fun(EredisPid) ->
         case eredis:q(EredisPid, ["EXISTS", prefixed(SID)]) of
             {ok, <<"1">>} ->
                 eredis:q(EredisPid, ["EXPIRE", prefixed(SID), ?CONFIG:get(expire)]);
@@ -88,20 +88,20 @@ handle_call(_, _, State) -> {reply, ignored, State}.
 
 
 handle_cast({new, SID}, State) ->
-    lib_pooler:use_member(fun(EredisPid) -> eredis:qp(EredisPid, [["HSET", prefixed(SID), "SID", SID],
+    cowboy_pooler:use_member(fun(EredisPid) -> eredis:qp(EredisPid, [["HSET", prefixed(SID), "SID", SID],
         ["EXPIRE", prefixed(SID), ?CONFIG:get(expire)]]) end, ?Master_Pool),
     {noreply, State};
 
 handle_cast({set, SID, Key, Value}, State) ->
-    lib_pooler:use_member(fun(EredisPid) -> eredis:q(EredisPid, ["HSET", prefixed(SID), Key, Value]) end, ?Master_Pool),
+    cowboy_pooler:use_member(fun(EredisPid) -> eredis:q(EredisPid, ["HSET", prefixed(SID), Key, Value]) end, ?Master_Pool),
     {noreply, State};
 
 handle_cast({delete, SID}, State) ->
-    lib_pooler:use_member(fun(EredisPid) -> eredis:q(EredisPid, ["DEL", prefixed(SID)]) end, ?Master_Pool),
+    cowboy_pooler:use_member(fun(EredisPid) -> eredis:q(EredisPid, ["DEL", prefixed(SID)]) end, ?Master_Pool),
     {noreply, State};
 
 handle_cast({delete, SID, Key}, State) ->
-    lib_pooler:use_member(fun(EredisPid) -> eredis:q(EredisPid, ["HDEL", prefixed(SID), Key]) end, ?Master_Pool),
+    cowboy_pooler:use_member(fun(EredisPid) -> eredis:q(EredisPid, ["HDEL", prefixed(SID), Key]) end, ?Master_Pool),
     {noreply, State};
 
 handle_cast({stop, _New_storage}, State) ->
